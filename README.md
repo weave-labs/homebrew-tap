@@ -1,4 +1,4 @@
-# Weave-labs Tap
+# WeaveLabs Tap
 
 ## How do I install these formulae?
 
