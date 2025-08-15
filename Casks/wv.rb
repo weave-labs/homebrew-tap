@@ -2,7 +2,7 @@
 cask "wv" do
   desc "CLI tool for generating API tests from OpenAPI specifications using LLMs"
   homepage "https://github.com/weave-labs/weave-cli"
-  version "0.0.20"
+  version "0.0.21"
 
   livecheck do
     skip "Auto-generated on release."
@@ -15,28 +15,28 @@ cask "wv" do
 
   on_macos do
     on_intel do
-      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.20/wv_0.0.20_darwin_amd64.tar.gz"
-      sha256 "9fb0496e8dc03df29d3ea210462a350abd535b53d7797e62c161a106d03a32b2"
+      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.21/wv_0.0.21_darwin_amd64.tar.gz"
+      sha256 "01b2a56bbad3a9e16e81afb7e9317ea7a453fa564907aaf6b599611b622505b5"
     end
     on_arm do
-      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.20/wv_0.0.20_darwin_arm64.tar.gz"
-      sha256 "95cafef81c7d88f63035e9527840a00504dec13c3ae419da3774d4021256de30"
+      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.21/wv_0.0.21_darwin_arm64.tar.gz"
+      sha256 "a68fed5fff7a155a973a7cf641a3f3cd4de268892b8c7b8ebaeec6b3c87c6ea2"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.20/wv_0.0.20_linux_amd64.tar.gz"
-      sha256 "8b8ba6042c4f314d8250432f45cca160d9c9dfd558660e9114ef7f1712f8a813"
+      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.21/wv_0.0.21_linux_amd64.tar.gz"
+      sha256 "6e37e6c8af4987d51be08936ce9fdd9cec6bd9cb28a5eb7cd04a03462e814fd3"
     end
     on_arm do
-      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.20/wv_0.0.20_linux_arm64.tar.gz"
-      sha256 "ea4f5272fe3af51dc868ab0ed5fc3c13950fb72c5dc55b894b3d5588986ed42e"
+      url "https://github.com/weave-labs/weave-cli/releases/download/v0.0.21/wv_0.0.21_linux_arm64.tar.gz"
+      sha256 "c78924ca215213c9664c35ad891d936e704c683a59cd699d7d28922606253079"
     end
   end
 
   postflight do
-    if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+    if system_command("/usr/bin/xattr", args: ["-h"]).exit_status.zero?
       system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/wv"]
     end
   end
