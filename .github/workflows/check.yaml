@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  style-audit-smoke:
+  check:
     if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
     runs-on: macos-14
     permissions:
@@ -81,7 +81,7 @@ jobs:
 
   tap-syntax:
     if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
-    needs: style-audit-smoke
+    needs: check
     strategy:
       matrix:
         include:
