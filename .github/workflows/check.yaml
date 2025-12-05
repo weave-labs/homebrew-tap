@@ -7,7 +7,17 @@ jobs:
   check-tap:
     strategy:
       matrix:
-        os: [ ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15 ]
+        include:
+          - os: ubuntu-22.04
+            arch: x86_64
+          - os: ubuntu-24.04
+            arch: x86_64
+          - os: macos-13
+            arch: x86_64   # Intel
+          - os: macos-14
+            arch: arm64    # Apple Silicon
+          - os: macos-15
+            arch: arm64    # Apple Silicon
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
