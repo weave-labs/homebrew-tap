@@ -3,7 +3,7 @@ cask "wv" do
   name "wv"
   desc "CLI tool for generating API tests from OpenAPI specifications using LLMs"
   homepage "https://github.com/weave-labs/weave-cli"
-  version "1.5.2"
+  version "1.5.4"
 
   livecheck do
     skip "Auto-generated on release."
@@ -17,22 +17,22 @@ cask "wv" do
   on_macos do
     on_intel do
       url "https://github.com/weave-labs/weave-cli/releases/download/v#{version}/wv_#{version}_darwin_amd64.tar.gz"
-      sha256 "f9efd80b6635236348d54f91c8f57d660eaf583ad6468d6534cc4f40701bc870"
+      sha256 "cadddd1543505e10b7a5423c5ab63ad4e98fb6d28655ea2f1a149a3b4caa5314"
     end
     on_arm do
       url "https://github.com/weave-labs/weave-cli/releases/download/v#{version}/wv_#{version}_darwin_arm64.tar.gz"
-      sha256 "dda809560c4006477bb14405fbd01f374b9d379e6e65503b0b939f083fccfb19"
+      sha256 "45d5688d95303dfdb101050ce9e9065b8e8c93accf62ea9cb354c2918413ad4b"
     end
   end
 
   on_linux do
     on_intel do
       url "https://github.com/weave-labs/weave-cli/releases/download/v#{version}/wv_#{version}_linux_amd64.tar.gz"
-      sha256 "781942e73f38f7f16242e4c94e8eecc84264ba84e3852a41e0ac9fd82bf7374e"
+      sha256 "590af352f7955a2f2512dc58e5427c7f7fcdfe584db10807701a12a2e3e1a0a6"
     end
     on_arm do
       url "https://github.com/weave-labs/weave-cli/releases/download/v#{version}/wv_#{version}_linux_arm64.tar.gz"
-      sha256 "47a941fa25022c3bc52732a15c47e18d33a62a4bae0880f17d3f82574e37a56b"
+      sha256 "fe839f01e6bc74109ecc6fbec49387ba0b365e578bb92a48419437e321348c6e"
     end
   end
 
