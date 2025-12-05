@@ -32,9 +32,11 @@ jobs:
             exit 1
           fi
 
-          echo "pr=$pr" >> "$GITHUB_OUTPUT"
-          echo "head_ref=$head_ref" >> "$GITHUB_OUTPUT"
-          echo "head_repo=$head_repo" >> "$GITHUB_OUTPUT"
+          {
+            echo "pr=$pr"
+            echo "head_ref=$head_ref"
+            echo "head_repo=$head_repo"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@main
