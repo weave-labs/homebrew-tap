@@ -4,7 +4,8 @@ on:
   pull_request:
 
 jobs:
-  check-tap:
+  tap-syntax:
+    if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
     strategy:
       matrix:
         include:
@@ -25,6 +26,8 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - uses: actions/checkout@v6
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
@@ -42,9 +45,92 @@ jobs:
 
       - run: brew test-bot --only-setup
 
+      - name: Skip if no tap content
+        run: |
+          casks=$(ls Casks/*.rb 2>/dev/null || true)
+          formulae=$(ls Formula/*.rb 2>/dev/null || true)
+          if [ -z "$casks" ] && [ -z "$formulae" ]; then
+            echo "no tap content; skipping tap-syntax."
+            exit 0
+          fi
+
       - run: brew test-bot --only-tap-syntax
-      - run: brew test-bot --only-formulae
-        if: github.event_name == 'pull_request'
+
+  formulae:
+    if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
+    runs-on: macos-14
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      pull-requests: read
+    needs: tap-syntax
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ github.token }}
+
+      - name: Cache Homebrew Bundler RubyGems
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+          key: macos-14-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+          restore-keys: macos-14-rubygems-
+
+      - run: brew test-bot --only-cleanup-before
+
+      - run: brew test-bot --only-setup
+
+      - name: Skip if cask missing
+        id: files
+        run: |
+          casks=$(ls Casks/*.rb 2>/dev/null || true)
+          formulae=$(ls Formula/*.rb 2>/dev/null || true)
+
+          if [ -z "$casks" ] && [ -z "$formulae" ]; then
+            echo "nothing_to_check=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "casks=$casks" >> "$GITHUB_OUTPUT"
+          echo "formulae=$formulae" >> "$GITHUB_OUTPUT"
+
+      - name: Register tap from checkout
+        if: steps.files.outputs.nothing_to_check != 'true'
+        run: brew tap weave-labs/tap "$(pwd)"
+
+      - name: Style
+        if: steps.files.outputs.nothing_to_check != 'true'
+        run: |
+          args=""
+          if [ -n "${{ steps.files.outputs.casks }}" ]; then
+            args="$args ${{ steps.files.outputs.casks }}"
+          fi
+          if [ -n "${{ steps.files.outputs.formulae }}" ]; then
+            args="$args ${{ steps.files.outputs.formulae }}"
+          fi
+          brew style $args
+
+      - name: Audit casks (online)
+        if: github.event_name == 'pull_request' && steps.files.outputs.casks != ''
+        run: brew audit --cask --online ${{ steps.files.outputs.casks }}
+
+      - name: Audit formulae (online)
+        if: github.event_name == 'pull_request' && steps.files.outputs.formulae != ''
+        run: brew audit --formula --online ${{ steps.files.outputs.formulae }}
+
+      - name: Install casks (smoke)
+        if: github.event_name == 'pull_request' && steps.files.outputs.casks != ''
+        run: |
+          for c in ${{ steps.files.outputs.casks }}; do
+            tok=$(basename "$c" .rb)
+            brew install --cask "./$c"
+            brew uninstall --cask --force "$tok"
+          done
 
       - name: Upload bottles as artifact
         if: always() && github.event_name == 'pull_request'
