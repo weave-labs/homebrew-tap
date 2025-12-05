@@ -1,13 +1,10 @@
-name: brew test-bot
+name: brew tap check
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
-  test-bot:
+  check-tap:
     strategy:
       matrix:
         os: [ ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15 ]
