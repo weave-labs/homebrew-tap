@@ -6,7 +6,7 @@ on:
 jobs:
   check:
     if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       actions: read
       checks: read
@@ -48,7 +48,9 @@ jobs:
 
       - name: Register tap from checkout
         if: steps.files.outputs.nothing_to_check != 'true'
-        run: brew tap weave-labs/tap "$(pwd)"
+        run: |
+          brew untap weave-labs/tap || true
+          brew tap --custom-remote weave-labs/tap "$(pwd)"
 
       - name: Style
         if: steps.files.outputs.nothing_to_check != 'true'
