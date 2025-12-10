@@ -6,7 +6,7 @@ on:
 jobs:
   check:
     if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
-    runs-on: macos-15
+    runs-on: warp-macos-15-arm64-6x
     permissions:
       actions: read
       checks: read
@@ -89,17 +89,10 @@ jobs:
     needs: check
     strategy:
       matrix:
-        include:
-          - os: ubuntu-22.04
-            arch: x86_64
-          - os: ubuntu-24.04
-            arch: x86_64
-          - os: macos-13
-            arch: x86_64   # Intel
-          - os: macos-14
-            arch: arm64    # Apple Silicon
-          - os: macos-15
-            arch: arm64    # Apple Silicon
+        os:
+          - warp-macos-13-arm64-6x
+          - warp-macos-14-arm64-6x
+          - warp-macos-15-arm64-6x
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
