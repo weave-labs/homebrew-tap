@@ -52,17 +52,31 @@ jobs:
           PULL_REQUEST: ${{ steps.pr.outputs.pr }}
         run: brew pr-pull --debug --tap="$GITHUB_REPOSITORY" "$PULL_REQUEST"
 
-      - name: Commit bottle changes
+      - name: Detect bottle changes
+        id: changes
         run: |
           git status --short
           if git diff --quiet; then
-            echo "No bottle changes to commit."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit bottle changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
           git add .
           git commit -m "Auto bottle updates for PR #${{ steps.pr.outputs.pr }}"
 
+      - name: Sanitize git auth for PR creation
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git config --local --unset-all http.https://github.com/.extraheader || true
+
       - name: Create PR for bottles
+        if: steps.changes.outputs.changed == 'true'
         id: cpr
         uses: peter-evans/create-pull-request@v8
         with:
@@ -92,7 +106,7 @@ jobs:
             });
 
       - name: Delete branch
-        if: steps.pr.outputs.head_repo == github.repository && steps.pr.outputs.head_ref != ''
+        if: steps.changes.outputs.changed == 'true' && steps.pr.outputs.head_repo == github.repository && steps.pr.outputs.head_ref != ''
         env:
           BRANCH: ${{ steps.pr.outputs.head_ref }}
         run: git push --delete origin "$BRANCH"
