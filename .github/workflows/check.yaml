@@ -129,8 +129,8 @@ jobs:
             os: warp-macos-15-arm64-6x
             cask: true
             formula: true
-          - name: ubuntu-22
-            os: ubuntu-22.04
+          - name: ubuntu-24
+            os: runs-on=${{ github.run_id }}/runner=linux-default
             cask: false
             formula: true
     runs-on: ${{ matrix.os }}
