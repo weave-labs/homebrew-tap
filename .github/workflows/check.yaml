@@ -69,11 +69,21 @@ jobs:
 
       - name: Audit casks (online)
         if: github.event_name == 'pull_request' && steps.files.outputs.casks != ''
-        run: brew audit --cask --online ${{ steps.files.outputs.casks }}
+        run: |
+          names=()
+          for c in ${{ steps.files.outputs.casks }}; do
+            names+=( "$(basename "$c" .rb)" )
+          done
+          brew audit --cask --online "${names[@]}"
 
       - name: Audit formulae (online)
         if: github.event_name == 'pull_request' && steps.files.outputs.formulae != ''
-        run: brew audit --formula --online ${{ steps.files.outputs.formulae }}
+        run: |
+          names=()
+          for f in ${{ steps.files.outputs.formulae }}; do
+            names+=( "$(basename "$f" .rb)" )
+          done
+          brew audit --formula --online "${names[@]}"
 
       - name: Install casks (smoke)
         if: github.event_name == 'pull_request' && steps.files.outputs.casks != ''
