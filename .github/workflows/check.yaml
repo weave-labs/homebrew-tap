@@ -65,6 +65,8 @@ jobs:
           if [ -n "${{ steps.files.outputs.formulae }}" ]; then
             args+=( ${{ steps.files.outputs.formulae }} )
           fi
+          
+          echo "style checking: ${args[*]}"
           brew style "${args[@]}"
 
       - name: Audit casks (online)
@@ -74,6 +76,8 @@ jobs:
           for c in ${{ steps.files.outputs.casks }}; do
             names+=( "$(basename "$c" .rb)" )
           done
+          
+          echo "auditing casks: ${names[*]}"
           brew audit --cask --online "${names[@]}"
 
       - name: Audit formulae (online)
@@ -83,6 +87,8 @@ jobs:
           for f in ${{ steps.files.outputs.formulae }}; do
             names+=( "$(basename "$f" .rb)" )
           done
+          
+          echo "auditing formulae: ${names[*]}"
           brew audit --formula --online "${names[@]}"
 
       - name: Install casks (smoke)
@@ -90,7 +96,7 @@ jobs:
         run: |
           for c in ${{ steps.files.outputs.casks }}; do
             tok=$(basename "$c" .rb)
-            brew install --cask "./$c"
+            brew install --cask "$tok"
             brew uninstall --cask --force "$tok"
           done
 
