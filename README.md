@@ -15,6 +15,19 @@ tap "weave-labs/tap"
 brew "<formula>"
 ```
 
+## How do I install these casks?
+
+`brew install --cask weave-labs/tap/<cask>`
+
+Or `brew tap weave-labs/tap` and then `brew install --cask <cask>`.
+
+Or, in a `brew bundle` `Brewfile`:
+
+```ruby
+tap "weave-labs/tap"
+cask "<cask>"
+```
+
 ## Artifact source
 
 - Release artifacts (tarballs/zips, checksums) live in the public repo: https://github.com/weave-labs/release
