@@ -65,34 +65,66 @@ jobs:
           if [ -n "${{ steps.files.outputs.formulae }}" ]; then
             args+=( ${{ steps.files.outputs.formulae }} )
           fi
+          
+          echo "style checking: ${args[*]}"
           brew style "${args[@]}"
+
+      - name: Tap syntax
+        if: steps.files.outputs.nothing_to_check != 'true'
+        run: brew test-bot --only-tap-syntax
 
       - name: Audit casks (online)
         if: github.event_name == 'pull_request' && steps.files.outputs.casks != ''
-        run: brew audit --cask --online ${{ steps.files.outputs.casks }}
+        run: |
+          names=()
+          for c in ${{ steps.files.outputs.casks }}; do
+            names+=( "$(basename "$c" .rb)" )
+          done
+          
+          echo "auditing casks: ${names[*]}"
+          brew audit --cask --online "${names[@]}"
 
       - name: Audit formulae (online)
         if: github.event_name == 'pull_request' && steps.files.outputs.formulae != ''
-        run: brew audit --formula --online ${{ steps.files.outputs.formulae }}
+        run: |
+          names=()
+          for f in ${{ steps.files.outputs.formulae }}; do
+            names+=( "$(basename "$f" .rb)" )
+          done
+          
+          echo "auditing formulae: ${names[*]}"
+          brew audit --formula --online "${names[@]}"
 
       - name: Install casks (smoke)
         if: github.event_name == 'pull_request' && steps.files.outputs.casks != ''
         run: |
           for c in ${{ steps.files.outputs.casks }}; do
             tok=$(basename "$c" .rb)
-            brew install --cask "./$c"
+            brew install --cask "$tok"
             brew uninstall --cask --force "$tok"
           done
 
-  tap-syntax:
+      - name: Restore tap symlink for cleanup
+        if: steps.files.outputs.nothing_to_check != 'true'
+        run: |
+          tap_path="$(brew --repo weave-labs/tap)"
+          sudo rm -rf "$tap_path"
+          sudo ln -s "$(pwd)" "$tap_path"
+
+  os-compat:
     if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
     needs: check
     strategy:
       matrix:
-        os:
-          - warp-macos-13-arm64-6x
-          - warp-macos-14-arm64-6x
-          - warp-macos-15-arm64-6x
+        include:
+          - name: macos-13
+            os: warp-macos-13-arm64-6x
+          - name: macos-14
+            os: warp-macos-14-arm64-6x
+          - name: macos-15
+            os: warp-macos-15-arm64-6x
+          - name: linux
+            os: runs-on=${{ github.run_id }}/runner=linux-default/extras=s3-cache
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
@@ -100,6 +132,10 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      - name: Configure RunsOn features
+        if: matrix.name == 'linux'
+        uses: runs-on/action@v2
+
       - uses: actions/checkout@v6
 
       - name: Set up Homebrew
@@ -107,6 +143,7 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@main
         with:
           token: ${{ github.token }}
+          core: true
 
       - name: Cache Homebrew Bundler RubyGems
         uses: actions/cache@v4
@@ -115,17 +152,49 @@ jobs:
           key: ${{ matrix.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
           restore-keys: ${{ matrix.os }}-rubygems-
 
-      - run: brew test-bot --only-cleanup-before
-
-      - run: brew test-bot --only-setup
-
-      - name: Skip if no tap content
+      - name: Detect tap content
+        id: files
         run: |
           casks=$(ls Casks/*.rb 2>/dev/null || true)
           formulae=$(ls Formula/*.rb 2>/dev/null || true)
+
           if [ -z "$casks" ] && [ -z "$formulae" ]; then
-            echo "no tap content; skipping tap-syntax."
+            echo "nothing_to_check=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-      - run: brew test-bot --only-tap-syntax
+          echo "casks=$casks" >> "$GITHUB_OUTPUT"
+          echo "formulae=$formulae" >> "$GITHUB_OUTPUT"
+
+      - name: Register tap from checkout
+        if: steps.files.outputs.nothing_to_check != 'true'
+        run: |
+          brew untap weave-labs/tap || true
+          brew tap --custom-remote weave-labs/tap "$(pwd)"
+
+      - name: Install casks (matrix)
+        if: steps.files.outputs.casks != '' && matrix.name != 'linux'
+        run: |
+          for c in ${{ steps.files.outputs.casks }}; do
+            tok=$(basename "$c" .rb)
+            echo "installing cask: $tok on ${{ matrix.name }}"
+            brew install --cask "$tok"
+            brew uninstall --cask --force "$tok"
+          done
+
+      - name: Install formulae (matrix)
+        if: steps.files.outputs.formulae != ''
+        run: |
+          for f in ${{ steps.files.outputs.formulae }}; do
+            tok=$(basename "$f" .rb)
+            echo "installing formula: $tok on ${{ matrix.name }}"
+            brew install "$tok"
+            brew uninstall --force "$tok"
+          done
+
+      - name: Restore tap symlink for cleanup
+        if: steps.files.outputs.nothing_to_check != 'true'
+        run: |
+          tap_path="$(brew --repo weave-labs/tap)"
+          sudo rm -rf "$tap_path"
+          sudo ln -s "$(pwd)" "$tap_path"
