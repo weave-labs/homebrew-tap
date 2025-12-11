@@ -100,6 +100,13 @@ jobs:
             brew uninstall --cask --force "$tok"
           done
 
+      - name: Restore tap symlink for cleanup
+        if: steps.files.outputs.nothing_to_check != 'true'
+        run: |
+          tap_path="/opt/homebrew/Library/Taps/weave-labs/homebrew-tap"
+          sudo rm -rf "$tap_path"
+          sudo ln -s "$(pwd)" "$tap_path"
+
   tap-syntax:
     if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
     needs: check
