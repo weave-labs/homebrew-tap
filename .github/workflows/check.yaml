@@ -121,18 +121,22 @@ jobs:
             os: warp-macos-13-arm64-6x
             cask: true
             formula: true
+            runs_on: false
           - name: macos-14
             os: warp-macos-14-arm64-6x
             cask: true
             formula: true
+            runs_on: false
           - name: macos-15
             os: warp-macos-15-arm64-6x
             cask: true
             formula: true
-          - name: ubuntu-24
-            os: runs-on=${{ github.run_id }}/runner=linux-default
+            runs_on: false
+          - name: linux
+            os: runs-on=${{ github.run_id }}/runner=linux-default/extras=s3-cache
             cask: false
             formula: true
+            runs_on: true
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
@@ -140,7 +144,9 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: runs-on/action@v2
+      - name: Configure RunsOn features
+        if: matrix.runs_on == true
+        uses: runs-on/action@v2
 
       - uses: actions/checkout@v6
 
