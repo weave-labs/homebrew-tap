@@ -119,24 +119,12 @@ jobs:
         include:
           - name: macos-13
             os: warp-macos-13-arm64-6x
-            cask: true
-            formula: true
-            runs_on: false
           - name: macos-14
             os: warp-macos-14-arm64-6x
-            cask: true
-            formula: true
-            runs_on: false
           - name: macos-15
             os: warp-macos-15-arm64-6x
-            cask: true
-            formula: true
-            runs_on: false
           - name: linux
             os: runs-on=${{ github.run_id }}/runner=linux-default/extras=s3-cache
-            cask: false
-            formula: true
-            runs_on: true
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
@@ -145,7 +133,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Configure RunsOn features
-        if: matrix.runs_on == true
+        if: matrix.name == 'linux'
         uses: runs-on/action@v2
 
       - uses: actions/checkout@v6
@@ -185,7 +173,7 @@ jobs:
           brew tap --custom-remote weave-labs/tap "$(pwd)"
 
       - name: Install casks (matrix)
-        if: steps.files.outputs.casks != '' && matrix.cask == true
+        if: steps.files.outputs.casks != '' && matrix.name != 'linux'
         run: |
           for c in ${{ steps.files.outputs.casks }}; do
             tok=$(basename "$c" .rb)
@@ -195,7 +183,7 @@ jobs:
           done
 
       - name: Install formulae (matrix)
-        if: steps.files.outputs.formulae != '' && matrix.formula == true
+        if: steps.files.outputs.formulae != ''
         run: |
           for f in ${{ steps.files.outputs.formulae }}; do
             tok=$(basename "$f" .rb)
