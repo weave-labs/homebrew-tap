@@ -6,7 +6,7 @@ on:
 jobs:
   check:
     if: ${{ startsWith(github.head_ref || '', 'bottle-pr-') == false }}
-    runs-on: warp-macos-15-arm64-6x
+    runs-on: macos-latest
     permissions:
       actions: read
       checks: read
@@ -117,12 +117,12 @@ jobs:
     strategy:
       matrix:
         include:
+          - name: macos-12
+            os: macos-12
           - name: macos-13
-            os: warp-macos-13-arm64-6x
+            os: macos-13
           - name: macos-14
-            os: warp-macos-14-arm64-6x
-          - name: macos-15
-            os: warp-macos-15-arm64-6x
+            os: macos-14
           - name: linux
             os: runs-on=${{ github.run_id }}/runner=linux-default/extras=s3-cache
     runs-on: ${{ matrix.os }}
