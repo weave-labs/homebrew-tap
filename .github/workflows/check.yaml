@@ -117,14 +117,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: macos-12
-            os: macos-12
-          - name: macos-13
-            os: macos-13
-          - name: macos-14
-            os: macos-14
+          - name: macos-15-intel
+            os: macos-15-intel
+          - name: macos-latest # macos-15-arm
+            os: macos-latest # macos-15-arm
           - name: linux
-            os: runs-on=${{ github.run_id }}/runner=linux-default/extras=s3-cache
+            os: runs-on=${{ github.run_id }}/runner=linux-default
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
