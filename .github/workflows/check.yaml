@@ -122,7 +122,7 @@ jobs:
           - name: macos-latest # macos-15-arm
             os: macos-latest # macos-15-arm
           - name: linux
-            os: runs-on=${{ github.run_id }}/runner=linux-default/extras=s3-cache
+            os: runs-on=${{ github.run_id }}/runner=linux-default
     runs-on: ${{ matrix.os }}
     permissions:
       actions: read
